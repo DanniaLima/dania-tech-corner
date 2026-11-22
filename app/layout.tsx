@@ -13,23 +13,14 @@ export const metadata: Metadata = {
       "Um espaço para explorar tecnologias, conhecer ferramentas e encontrar inspiração para o próximo projeto.",
     url: "https://dania-tech-corner.vercel.app",
     siteName: "Dannia Tech Corner",
-    images: [
-      {
-        url: "/apple-icon.png",
-        width: 512,
-        height: 512,
-        alt: "Dannia Tech Corner",
-      },
-    ],
     locale: "pt_BR",
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Dannia Tech Corner — Explore. Learn. Build.",
     description:
       "Um espaço para explorar tecnologias, conhecer ferramentas e encontrar inspiração para o próximo projeto.",
-    images: ["/apple-icon.png"],
   },
   icons: {
     icon: [
