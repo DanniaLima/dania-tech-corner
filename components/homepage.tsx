@@ -606,7 +606,9 @@ export function HomePage() {
         <div className="footer-bottom">
           <span>© 2026 Dannia Tech Corner</span>
           <span>
-            Feito com curiosidade <span className="footer-heart">✳</span>
+            Desenvolvido por{" "}
+            <strong className="text-foreground">Dannia Lima</strong> com
+            curiosidade <span className="footer-heart">✳</span>
           </span>
           <a href="#home">Voltar ao topo ↑</a>
         </div>
