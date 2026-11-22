@@ -284,7 +284,7 @@ select {
   line-height: 1.05;
   font-weight: 800;
 }
-.hero h1 span {
+.hero h1 .highlight {
   color: var(--accent);
 }
 .hero-description {
@@ -1219,4 +1219,73 @@ select {
 .animate-fade-in-up {
   opacity: 0;
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Animações do Hero (Tech Lab) */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 40px var(--hero-glow),
+      inset 0 0 20px var(--hero-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 80px var(--hero-glow),
+      inset 0 0 40px var(--hero-glow);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.animate-float-delayed {
+  animation: float 5s ease-in-out 1s infinite;
+}
+.animate-spin-slow {
+  animation: spin-slow 30s linear infinite;
+}
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* Destacar o gráfico no meio do efeito Matrix */
+.hero-art {
+  position: relative;
+}
+/* Fundo radial mais forte atrás do gráfico para bloquear o Matrix de verdade */
+.hero-art::before {
+  content: "";
+  position: absolute;
+  inset: -20%; /* Aumentei a área de proteção */
+  background: radial-gradient(
+    circle at center,
+    var(--background) 40%,
+    transparent 75%
+  );
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.95; /* Quase 100% opaco no centro */
+}
+
+/* Deixar as linhas dos círculos e dos quadradinhos mais visíveis no escuro */
+:root {
+  --border: rgba(148, 163, 184, 0.25);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowDown,
@@ -23,6 +23,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+import { MatrixBackground } from "./MatrixBackground"; // Importando o efeito
 
 type Theme = "light" | "dark" | "system";
 
@@ -185,6 +186,109 @@ const tools = [
   },
 ];
 
+function Typewriter() {
+  const fullText = "Explore o futuro.\nConstrua o que\nvem.";
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const typingSpeed = 40;
+  const deletingSpeed = 20;
+  const pause = 1000;
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    const handleType = () => {
+      if (!isDeleting && currentIndex === fullText.length) {
+        timeout = setTimeout(() => setIsDeleting(true), pause);
+      } else if (isDeleting && currentIndex === 0) {
+        setIsDeleting(false);
+        timeout = setTimeout(() => {}, 500);
+      } else {
+        const nextIndex = isDeleting ? currentIndex - 1 : currentIndex + 1;
+        setCurrentIndex(nextIndex);
+        setCurrentText(fullText.substring(0, nextIndex));
+        timeout = setTimeout(
+          handleType,
+          isDeleting ? deletingSpeed : typingSpeed,
+        );
+      }
+    };
+
+    timeout = setTimeout(handleType, 100);
+    return () => clearTimeout(timeout);
+  }, [currentIndex, isDeleting]);
+
+  const lines = currentText.split("\n");
+
+  return (
+    <span className="relative block">
+      <span className="invisible flex flex-col pointer-events-none">
+        <span className="text-foreground">Explore o futuro.</span>
+        <span className="highlight">Construa o que</span>
+        <span className="highlight">vem.</span>
+      </span>
+
+      <span className="absolute inset-0 flex flex-col">
+        {lines.map((line, index) => {
+          const isLastLine = index === lines.length - 1;
+
+          return (
+            <span
+              key={index}
+              className={`${index === 0 ? "text-foreground" : "highlight"} whitespace-pre-wrap`}
+            >
+              {line}
+              {isLastLine && (
+                <span className="inline-block w-[4px] h-[1em] bg-[#4f7cff] ml-1 animate-pulse align-middle" />
+              )}
+            </span>
+          );
+        })}
+      </span>
+    </span>
+  );
+}
+
+function Reveal({
+  children,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+      }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function ThemeControl({
   theme,
   setTheme,
@@ -225,18 +329,9 @@ function ThemeControl({
   );
 }
 
-function ToolCard({
-  tool,
-  index,
-}: {
-  tool: (typeof tools)[number];
-  index: number;
-}) {
+function ToolCard({ tool }: { tool: (typeof tools)[number] }) {
   return (
-    <article
-      className="tool-card animate-fade-in-up"
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
+    <article className="tool-card">
       <div className="tool-card-top">
         <div className={`tool-mark ${tool.color}`}>{tool.mark}</div>
         <span className="tool-type">{tool.type}</span>
@@ -290,7 +385,6 @@ export function HomePage() {
     <main>
       <header className="site-header">
         <div className="nav-shell">
-          {/* LOGO EMPILHADO - HEADER */}
           <Link
             href="#home"
             className="brand group flex items-center gap-3"
@@ -344,8 +438,6 @@ export function HomePage() {
             <a href="#about" onClick={() => setMenuOpen(false)}>
               Sobre
             </a>
-
-            {/* LINK PARA A LANDING PAGE NO MENU */}
             <a
               href="https://dania-landing-page.vercel.app/"
               target="_blank"
@@ -368,25 +460,30 @@ export function HomePage() {
         </div>
       </header>
 
-      <section className="hero" id="home">
+      <section className="hero relative" id="home">
+        {/* O EFEITO MATRIX ENTRA AQUI */}
+        <MatrixBackground theme={theme} />
+
         <div className="hero-grid" aria-hidden="true" />
-        <div className="hero-inner">
+        <div className="hero-inner relative z-10">
+          {" "}
+          {/* z-10 garante que o texto fica na frente */}
           <div className="hero-copy">
-            <div className="eyebrow">
+            <div className="eyebrow animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
               <span className="eyebrow-dot" /> UM LABORATÓRIO DE DESCOBERTAS
               DIGITAIS
             </div>
-            <h1>
-              Explore o futuro.
-              <br />
-              <span>Construa o que vem.</span>
+
+            <h1 className="animate-in fade-in duration-700 delay-200">
+              <Typewriter />
             </h1>
-            <p className="hero-description">
+
+            <p className="hero-description animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300">
               Um espaço para explorar tecnologias, conhecer ferramentas e
               encontrar inspiração para o próximo projeto.
             </p>
             <form
-              className="hero-search"
+              className="hero-search animate-in fade-in slide-in-from-bottom-8 duration-700 delay-400"
               onSubmit={(event) => {
                 event.preventDefault();
                 document
@@ -406,7 +503,7 @@ export function HomePage() {
                 <ArrowRight size={17} />
               </button>
             </form>
-            <div className="hero-note">
+            <div className="hero-note animate-in fade-in duration-1000 delay-500">
               <span className="note-avatars">
                 <i>D</i>
                 <i>T</i>
@@ -420,9 +517,9 @@ export function HomePage() {
             aria-label="Ilustração abstrata de um laboratório digital"
           >
             <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
+            <div className="orbit orbit-two animate-spin-slow" />
             <div className="orbit orbit-three" />
-            <div className="art-center">
+            <div className="art-center animate-pulse-glow">
               <div className="center-grid" />
               <Braces size={42} strokeWidth={1.4} />
               <span className="center-label">
@@ -431,16 +528,16 @@ export function HomePage() {
                 LAB
               </span>
             </div>
-            <div className="orbit-node node-one">
+            <div className="orbit-node node-one animate-float">
               <Code2 size={17} />
             </div>
-            <div className="orbit-node node-two">
+            <div className="orbit-node node-two animate-float-delayed">
               <Sparkles size={18} />
             </div>
-            <div className="orbit-node node-three">
+            <div className="orbit-node node-three animate-float">
               <Layers3 size={17} />
             </div>
-            <div className="orbit-node node-four">
+            <div className="orbit-node node-four animate-float-delayed">
               <WandSparkles size={17} />
             </div>
             <span className="art-coordinate coordinate-one">
@@ -453,68 +550,77 @@ export function HomePage() {
             <span className="art-cross cross-two">+</span>
           </div>
         </div>
-        <a href="#categories" className="scroll-cue">
+        <a
+          href="#categories"
+          className="scroll-cue animate-in fade-in duration-1000 delay-700"
+        >
           <span>DESCUBRA</span>
           <ArrowDown size={13} />
         </a>
       </section>
 
       <section className="section categories-section" id="categories">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">MAPA DE EXPLORAÇÃO</span>
-            <h2>Um universo de possibilidades.</h2>
-            <p>Encontre seu próximo ponto de partida.</p>
+        <Reveal>
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">MAPA DE EXPLORAÇÃO</span>
+              <h2>Um universo de possibilidades.</h2>
+              <p>Encontre seu próximo ponto de partida.</p>
+            </div>
+            <a className="text-link" href="#discoveries">
+              Ver todas as ferramentas <ArrowRight size={15} />
+            </a>
           </div>
-          <a className="text-link" href="#discoveries">
-            Ver todas as ferramentas <ArrowRight size={15} />
-          </a>
-        </div>
+        </Reveal>
         <div className="category-grid">
           {categories.map(
             ({ name, detail, icon: Icon, count, tone }, index) => (
-              <a
-                className="category-card animate-fade-in-up"
-                href="#discoveries"
-                key={name}
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className={`category-icon ${tone}`}>
-                  <Icon size={19} strokeWidth={1.7} />
-                </div>
-                <span className="category-index">0{index + 1}</span>
-                <h3>{name}</h3>
-                <p>{detail}</p>
-                <div className="category-footer">
-                  <span>{count}</span>
-                  <ArrowUpRight size={15} />
-                </div>
-              </a>
+              <Reveal key={name} delay={index * 100}>
+                <a className="category-card h-full block" href="#discoveries">
+                  <div className={`category-icon ${tone}`}>
+                    <Icon size={19} strokeWidth={1.7} />
+                  </div>
+                  <span className="category-index">0{index + 1}</span>
+                  <h3>{name}</h3>
+                  <p>{detail}</p>
+                  <div className="category-footer">
+                    <span>{count}</span>
+                    <ArrowUpRight size={15} />
+                  </div>
+                </a>
+              </Reveal>
             ),
           )}
         </div>
       </section>
 
       <section className="section discoveries-section" id="discoveries">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">CURIOSIDADE EM AÇÃO</span>
-            <h2>{query ? "Resultados da busca." : "Descobertas recentes."}</h2>
-            <p>
-              {query
-                ? `${results.length} ${results.length === 1 ? "ferramenta encontrada" : "ferramentas encontradas"} para “${query}”`
-                : "Ferramentas e tecnologias no nosso radar."}
-            </p>
+        <Reveal>
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">CURIOSIDADE EM AÇÃO</span>
+              <h2>
+                {query ? "Resultados da busca." : "Descobertas recentes."}
+              </h2>
+              <p>
+                {query
+                  ? `${results.length} ${results.length === 1 ? "ferramenta encontrada" : "ferramentas encontradas"} para “${query}”`
+                  : "Ferramentas e tecnologias no nosso radar."}
+              </p>
+            </div>
+            <span className="catalog-count">
+              <span className="live-dot" />{" "}
+              {tools.length.toString().padStart(2, "0")} FERRAMENTAS NO CATÁLOGO
+            </span>
           </div>
-          <span className="catalog-count">
-            <span className="live-dot" />{" "}
-            {tools.length.toString().padStart(2, "0")} FERRAMENTAS NO CATÁLOGO
-          </span>
-        </div>
+        </Reveal>
+
         {results.length > 0 ? (
           <div className="tool-grid">
             {results.slice(0, 6).map((tool, index) => (
-              <ToolCard key={tool.name} tool={tool} index={index} />
+              <Reveal key={tool.name} delay={index * 100}>
+                <ToolCard tool={tool} />
+              </Reveal>
             ))}
           </div>
         ) : (
@@ -523,45 +629,50 @@ export function HomePage() {
             <p>Nenhuma ferramenta encontrada. Tente outro termo.</p>
           </div>
         )}
-        <div className="catalog-footnote">
-          <span>
-            <Check size={14} /> Conteúdo em curadoria contínua
-          </span>
-          <span>As classificações refletem o estágio da nossa exploração.</span>
-        </div>
+        <Reveal>
+          <div className="catalog-footnote">
+            <span>
+              <Check size={14} /> Conteúdo em curadoria contínua
+            </span>
+            <span>
+              As classificações refletem o estágio da nossa exploração.
+            </span>
+          </div>
+        </Reveal>
       </section>
 
       <section className="manifesto" id="about">
-        <div className="manifesto-inner">
-          <div className="manifesto-symbol">
-            <Sparkles size={21} />
+        <Reveal>
+          <div className="manifesto-inner">
+            <div className="manifesto-symbol">
+              <Sparkles size={21} />
+            </div>
+            <div>
+              <span className="section-kicker">A IDEIA POR TRÁS DO LAB</span>
+              <h2>
+                Tecnologia não é só o que existe.
+                <br />
+                <span>É o que você pode criar com ela.</span>
+              </h2>
+              <p>
+                Dannia Tech Corner é um espaço independente para descobrir,
+                experimentar e aprender sobre as ferramentas que estão moldando
+                o mundo digital.
+              </p>
+            </div>
+            <a
+              href="#home"
+              className="manifesto-link"
+              aria-label="Voltar ao início"
+            >
+              <ArrowUpRight size={20} />
+            </a>
           </div>
-          <div>
-            <span className="section-kicker">A IDEIA POR TRÁS DO LAB</span>
-            <h2>
-              Tecnologia não é só o que existe.
-              <br />
-              <span>É o que você pode criar com ela.</span>
-            </h2>
-            <p>
-              Dannia Tech Corner é um espaço independente para descobrir,
-              experimentar e aprender sobre as ferramentas que estão moldando o
-              mundo digital.
-            </p>
-          </div>
-          <a
-            href="#home"
-            className="manifesto-link"
-            aria-label="Voltar ao início"
-          >
-            <ArrowUpRight size={20} />
-          </a>
-        </div>
+        </Reveal>
       </section>
 
       <footer className="site-footer">
         <div className="footer-main">
-          {/* LOGO EMPILHADO - FOOTER */}
           <Link
             href="#home"
             className="brand group flex items-center gap-3"
@@ -585,14 +696,11 @@ export function HomePage() {
               </span>
             </div>
           </Link>
-
           <p>Explore. Learn. Build.</p>
-
           <div className="footer-links">
             <a href="#categories">Categorias</a>
             <a href="#discoveries">Descobertas</a>
             <a href="#about">Sobre o projeto</a>
-            {/* LINK PARA A LANDING PAGE NO FOOTER */}
             <a
               href="https://dania-landing-page.vercel.app/"
               target="_blank"
